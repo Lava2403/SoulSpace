@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const passport = require('passport');
 const session = require('express-session');
 const authRoutes = require('./routes/auth');
@@ -14,7 +13,6 @@ const journalRoutes = require('./routes/journal');
 const cors = require('cors');
 const User = require('./models/User'); // Import the User model
 
-dotenv.config();
 const app = express();
 
 // Middleware
