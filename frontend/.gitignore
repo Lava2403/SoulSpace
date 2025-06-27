@@ -22,3 +22,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# sensitive backend files (DO NOT PUSH)
+backend/config/passportGoogle.js
+backend/config/passportFacebook.js
+backend/routes/auth.js
