@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const FeelGoodRecipes = () => {
     const [mood, setMood] = useState('');
@@ -8,18 +7,43 @@ const FeelGoodRecipes = () => {
     const [submitted, setSubmitted] = useState(false);
     const [recipes, setRecipes] = useState('');
     const [loading, setLoading] = useState(false);
+    
+    const generateRecipes = async ({ mood, energy, time }) => {
+  try {
+    const res = await fetch('http://localhost:5000/api/recipes/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ mood, energy, time })
+    });
+
+    const data = await res.json();
+    return { choices: [{ message: { content: data.recipes } }] };
+  } catch (error) {
+    console.error('❌ Error fetching from backend:', error);
+    return { error: 'Failed to generate recipes from backend' };
+  }
+};
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitted(true);
         setLoading(true);
         setRecipes('');
+        console.log("🍳 Submitting mood/energy/time:", { mood, energy, time });
 
         try {
-            const response = await axios.post('http://localhost:5000/api/recipes/generate', { mood, energy, time });
-            setRecipes(response.data.recipes);
+            const result = await generateRecipes({ mood, energy, time });
+            console.log("🧠 AI Response:", result);
+
+            if (result.choices && result.choices[0]?.message?.content) {
+                setRecipes(result.choices[0].message.content);
+            } else {
+                console.error('AI Error:', result.error || 'Unexpected format');
+            }
         } catch (error) {
-            console.error('Error fetching recipes:', error);
+            console.error('❌ Error fetching recipes:', error);
         } finally {
             setLoading(false);
         }
@@ -80,7 +104,6 @@ const FeelGoodRecipes = () => {
                                 Find Recipes ✨
                             </button>
 
-                            {/* Loader inside the form */}
                             {loading && (
                                 <div className="text-green-600 font-bold text-center mt-4 animate-pulse">
                                     Fetching delicious recipes for you... 

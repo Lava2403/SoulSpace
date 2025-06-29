@@ -1,41 +1,29 @@
-const express = require('express');
-const axios = require('axios');
-const router = express.Router();
+// backend/routes/recipes.js
 require('dotenv').config();
+const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const router = express.Router();
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post('/generate', async (req, res) => {
-    const { mood, energy, time } = req.body;
+  const { mood, energy, time } = req.body;
 
-    try {
-        const response = await axios.post(
-            'https://openrouter.ai/api/v1/chat/completions',
-            {
-                model: 'tngtech/deepseek-r1t-chimera:free', // You can also use other free models listed on OpenRouter
-                messages: [
-                    {
-                        role: 'user',
-                        content: `List 3 vegetarian or vegan recipes for someone who is feeling ${mood}, has ${energy} energy, and ${time} cooking time. Directly start with the recipes. Include recipe names, ingredients, steps, and cooking time. No introduction or extra comments.`
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-                    }
-                ]
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                    'HTTP-Referer': 'http://localhost:3000', // ✅ Add your frontend URL here
-                    'X-Title': 'Feel Good Recipes App',
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+    const prompt = `List 3 vegetarian or vegan recipes for someone who is feeling ${mood}, has ${energy} energy, and ${time} cooking time. 
+    Include recipe names, ingredients, steps, and approximate cooking time. No intro or extra comments.`;
 
-        const recipesText = response.data.choices[0]?.message?.content || 'No recipes generated';
-        res.json({ recipes: recipesText });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-    } catch (error) {
-        console.error('Error generating recipes:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to generate recipes' });
-    }
+    res.json({ recipes: text });
+  } catch (err) {
+    console.error("🔥 Gemini API error:", err.message);
+    res.status(500).json({ error: "Failed to generate recipes with Gemini." });
+  }
 });
 
 module.exports = router;

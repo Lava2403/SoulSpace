@@ -145,7 +145,6 @@ router.get('/current-user', (req, res) => {
         return res.status(200).json({ user: null });
     }
 });
-console.log('Email:', process.env.EMAIL_USER);
-console.log('Password:', process.env.EMAIL_PASS);
+
 
 module.exports = router;
